@@ -73,50 +73,6 @@ X_train, X_test, Y_train, Y_test = train_test_split(x, y, test_size=0.2, random_
 
 ###############################################
 
-# xay dung mo hinh knn
-# cho neighbors = 1000
-knn = KNeighborsClassifier(100)
-knn.fit(X_train, Y_train)
-
-# xay dung mo hinh bayes dua tren phan phoi xac xuat tuan theo Gausian
-bayes = GaussianNB()
-bayes.fit(X_train, Y_train)
-
-#xay dung mo hình cây quyết định
-tree = DecisionTreeClassifier(random_state=351)
-tree.fit(X_train, Y_train)
-
-#############################################
-
-#đánh giá mô hình
-
-# knn
-Y_pred_KNN = knn.predict(X_test)
-print("\n==============================================================================\n")
-print("knn có độ chính xác tổng thể là là: ", accuracy_score(Y_test, Y_pred_KNN)*100)
-print("độ chính xác cho từng phân lớp :")
-print(confusion_matrix(Y_test, Y_pred_KNN))
-
-# bayes
-Y_pred_bayes = bayes.predict(X_test)
-print("\n==============================================================================\n")
-print("bayes có độ chính xác tổng thể là là: ", accuracy_score(Y_test, Y_pred_bayes)*100)
-print("độ chính xác cho từng phân lớp :")
-print(confusion_matrix(Y_test, Y_pred_bayes))
-
-# tree
-Y_pred_tree = tree.predict(X_test)
-print("\n==============================================================================\n")
-print("tree có độ chính xác tổng thể là là: ", accuracy_score(Y_test, Y_pred_tree)*100)
-print("độ chính xác cho từng phân lớp :")
-print(confusion_matrix(Y_test, Y_pred_tree))
-
-####################################
-# giai thuat hold-out
-print(cross_val_score(knn, x, y).mean()*100)
-print(cross_val_score(bayes, x, y).mean()*100)
-print(cross_val_score(tree, x, y).mean()*100)
-
 ####################################
 #dự đoán 1 phần tử mới tới bằng cây quyết định
 
@@ -127,3 +83,67 @@ print(cross_val_score(tree, x, y).mean()*100)
 
 
 # print(Y_pred_tree)
+
+
+
+#tìm max_depth min_samples_leaf tốt nhất trong 10 lần 
+
+max_depth_good = 0;
+min_samples_leaf_good = 0;
+accuracy_score_good = 0;
+for i in range(0, 10):
+    tree = DecisionTreeClassifier(random_state=351, criterion="entropy", max_depth=3+i, min_samples_leaf=5+i)
+    tree.fit(X_train, Y_train)
+    Y_pred_tree = tree.predict(X_test)
+    accuracy_score_test = accuracy_score(Y_test, Y_pred_tree)*100
+    print("\n==============================================================================\n")
+    print("lần ",i + 1," : max_depth = ",3+i,"min_samples_leaf = ", 5+i )
+    print("độ chính xác tổng thể là: ", accuracy_score_test)
+    if(accuracy_score_good < accuracy_score_test):
+        accuracy_score_good = accuracy_score_test
+        max_depth_good = 3+i;
+        min_samples_leaf_good = 5+i;
+
+print("\n==============================================================================\n")
+print("độ chính xác cao nhất trong 10 lần lặp là: ", accuracy_score_good)
+print("max_depth tốt nhất trong 10 lần lặp là: ", max_depth_good)
+print("min_samples_leaf tốt nhất trong 10 lần lặp là: ", min_samples_leaf_good)
+print("\n==============================================================================\n")
+
+
+#chạy thử 10 lần để so sánh với các giải thuật khác
+for i in range(0, 10):
+    X_train, X_test, Y_train, Y_test = train_test_split(x, y, test_size=0.2, random_state=i)
+    
+    # xay dung mo hinh knn
+    # cho neighbors = 100
+    knn = KNeighborsClassifier(100)
+    knn.fit(X_train, Y_train)
+
+    # xay dung mo hinh bayes dua tren phan phoi xac xuat tuan theo Gausian
+    bayes = GaussianNB()
+    bayes.fit(X_train, Y_train)
+
+    #xay dung mo hình cây quyết định max_depth = 10,  min_samples_leaf = 12
+    tree = DecisionTreeClassifier(random_state=351, criterion="entropy", max_depth = max_depth_good, min_samples_leaf = min_samples_leaf_good)
+    tree.fit(X_train, Y_train)
+
+    #############################################
+
+    #đánh giá mô hình
+    print("\n==============================================================================\n")
+    print("lặp lần: ", i+1)
+
+    # knn
+    Y_pred_KNN = knn.predict(X_test)
+    print("knn có độ chính xác tổng thể là: ", accuracy_score(Y_test, Y_pred_KNN)*100)
+
+    # bayes
+    Y_pred_bayes = bayes.predict(X_test)
+    print("bayes có độ chính xác tổng thể là: ", accuracy_score(Y_test, Y_pred_bayes)*100)
+
+    # tree
+    Y_pred_tree = tree.predict(X_test)
+    print("tree có độ chính xác tổng thể là: ", accuracy_score(Y_test, Y_pred_tree)*100)
+
+
